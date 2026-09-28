@@ -1,0 +1,1 @@
+# Regras de negócio do GiroScore (HOT_BUY, GOOD_GIRO, SLOW_GIRO) documentadas

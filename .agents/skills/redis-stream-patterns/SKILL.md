@@ -1,0 +1,1 @@
+# Padrões de consumer group, idempotência, retry usados no projeto

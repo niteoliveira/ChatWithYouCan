@@ -1,0 +1,1 @@
+# Convenções do time: sem Mediator, controller→service→repository
