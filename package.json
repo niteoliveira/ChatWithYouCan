@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:full": "concurrently -n \"SERVER,VITE\" -c \"cyan,magenta\" \"node server.js\" \"vite\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "server": "node server.js",
@@ -23,6 +24,7 @@
     "@types/react-dom": "^18.3.0",
     "@types/ws": "^8.5.12",
     "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^10.0.5",
     "typescript": "^5.5.3",
     "vite": "^5.4.2"
   }
