@@ -100,13 +100,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ packet, isSelf }) 
   const getCipherBadge = () => {
     switch (packet.cipherType) {
       case 'OTP':
-        return <span className="badge badge-emerald">One-Time Pad (Dec)</span>;
+        return <span className="badge badge-neutral">OTP Dec</span>;
       case 'CAESAR':
-        return <span className="badge badge-cyan">César Generalizado</span>;
+        return <span className="badge badge-neutral">César</span>;
       case 'VIGENERE':
-        return <span className="badge badge-amber">Vigenère</span>;
+        return <span className="badge badge-neutral">Vigenère</span>;
       case 'HILL':
-        return <span className="badge badge-purple" style={{ background: 'rgba(157, 78, 221, 0.15)', color: '#d8bbff' }}>Hill (Matriz)</span>;
+        return <span className="badge badge-neutral">Hill 2×2</span>;
       default:
         return null;
     }
@@ -117,49 +117,52 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ packet, isSelf }) 
       display: 'flex',
       flexDirection: 'column',
       alignItems: isSelf ? 'flex-end' : 'flex-start',
-      marginBottom: '18px'
+      marginBottom: '16px'
     }}>
       {/* Sender and timestamp header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '8px',
-        fontSize: '0.75rem',
+        gap: '6px',
+        fontSize: '0.72rem',
         color: 'var(--text-muted)',
         marginBottom: '4px',
-        padding: '0 4px'
+        padding: '0 2px'
       }}>
-        <span style={{ fontWeight: 700, color: isSelf ? '#00ffaa' : 'var(--text-main)' }}>
-          {packet.senderName} {isSelf && '(Você)'}
+        <span style={{ fontWeight: 600, color: isSelf ? 'var(--text-warm)' : 'var(--text-main)' }}>
+          {packet.senderName} {isSelf && '(você)'}
         </span>
-        <span>•</span>
-        <span>{new Date(packet.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+        <span style={{ color: 'var(--text-dim)' }}>•</span>
+        <span style={{ color: 'var(--text-dim)' }}>
+          {new Date(packet.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+        </span>
         {getCipherBadge()}
       </div>
 
       {/* Bubble Container */}
       <div style={{
         maxWidth: '85%',
-        background: isSelf ? 'rgba(0, 255, 170, 0.05)' : 'rgba(20, 28, 45, 0.7)',
-        border: '1px solid ' + (isSelf ? 'rgba(0, 255, 170, 0.25)' : 'rgba(255, 255, 255, 0.09)'),
-        borderRadius: isSelf ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
-        padding: '16px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+        background: isSelf ? '#16171d' : 'var(--bg-card)',
+        border: '1px solid ' + (isSelf ? 'rgba(255, 255, 255, 0.14)' : 'var(--border-color)'),
+        borderRadius: '8px',
+        padding: '14px 16px',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
       }}>
         {/* Ciphertext in transit */}
-        <div style={{ marginBottom: '10px' }}>
+        <div style={{ marginBottom: '8px' }}>
           <div style={{
-            fontSize: '0.7rem',
+            fontSize: '0.68rem',
             color: 'var(--text-dim)',
             textTransform: 'uppercase',
-            fontWeight: 700,
-            letterSpacing: '0.05em',
+            fontWeight: 600,
+            letterSpacing: '0.04em',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}>
-            <span>Pacote Cifrado em Trânsito na LAN</span>
+            <span>Pacote Cifrado na Rede</span>
             <button
+              type="button"
               onClick={handleCopyCipher}
               style={{
                 background: 'none',
@@ -169,21 +172,22 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ packet, isSelf }) 
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                fontSize: '0.7rem'
+                fontSize: '0.68rem'
               }}
             >
-              {copied ? <Check size={12} color="#00ffaa" /> : <Copy size={12} />}
-              {copied ? 'Copiado' : 'Copiar'}
+              {copied ? <Check size={11} color="#10b981" /> : <Copy size={11} />}
+              <span>{copied ? 'Copiado' : 'Copiar'}</span>
             </button>
           </div>
 
           <div style={{
             fontFamily: 'var(--font-mono)',
-            fontSize: '0.92rem',
-            color: '#a8d5e5',
+            fontSize: '0.86rem',
+            color: 'var(--text-warm)',
             wordBreak: 'break-all',
-            background: 'rgba(0, 0, 0, 0.3)',
-            padding: '8px 10px',
+            background: 'var(--bg-inset)',
+            border: '1px solid var(--border-color)',
+            padding: '7px 10px',
             borderRadius: '6px',
             marginTop: '4px'
           }}>
@@ -194,17 +198,17 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ packet, isSelf }) 
         {/* Decrypted Reveal (if successful) */}
         {decryptedText ? (
           <div style={{
-            background: 'rgba(0, 255, 170, 0.1)',
-            border: '1px solid rgba(0, 255, 170, 0.4)',
-            borderRadius: '8px',
-            padding: '10px 14px',
-            marginTop: '10px'
+            background: 'rgba(16, 185, 129, 0.08)',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
+            borderRadius: '6px',
+            padding: '8px 12px',
+            marginTop: '8px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#00ffaa', fontSize: '0.75rem', fontWeight: 700, marginBottom: '2px' }}>
-              <CheckCircle2 size={14} />
-              <span>Mensagem Revelada com Sucesso</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#34d399', fontSize: '0.72rem', fontWeight: 600, marginBottom: '2px' }}>
+              <CheckCircle2 size={13} />
+              <span>Mensagem Revelada</span>
             </div>
-            <div style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff' }}>
+            <div style={{ fontSize: '0.92rem', fontWeight: 500, color: '#ffffff' }}>
               {decryptedText}
             </div>
           </div>
@@ -212,30 +216,33 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ packet, isSelf }) 
           <div>
             {!showDecryptor ? (
               <button
+                type="button"
                 onClick={() => setShowDecryptor(true)}
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: 'var(--accent-cyan)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
+                  gap: '5px',
                   padding: 0,
-                  marginTop: '6px'
+                  marginTop: '4px'
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-main)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
               >
-                <Key size={13} /> Inserir Chave Secreta para Decriptar
+                <Key size={12} /> Inserir chave para decriptar
               </button>
             ) : (
-              <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
                   <input
                     type="text"
                     className="input-field input-field-mono"
-                    style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+                    style={{ padding: '5px 8px', fontSize: '0.78rem' }}
                     placeholder={
                       packet.cipherType === 'OTP'
                         ? 'Chave decimal (Ex: 67890)'
@@ -250,34 +257,35 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ packet, isSelf }) 
                     onKeyDown={(e) => e.key === 'Enter' && handleAttemptDecrypt()}
                   />
                   <button
+                    type="button"
                     onClick={handleAttemptDecrypt}
                     className="btn-primary"
-                    style={{ padding: '6px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
+                    style={{ padding: '5px 12px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
                   >
-                    <Unlock size={14} /> Decifrar
+                    <Unlock size={12} /> Decifrar
                   </button>
                 </div>
 
                 {error && (
-                  <div style={{ marginTop: '4px' }}>
-                    <div style={{ color: '#ff3366', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
-                      <AlertCircle size={13} />
+                  <div style={{ marginTop: '2px' }}>
+                    <div style={{ color: '#ff5c7a', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                      <AlertCircle size={12} />
                       <span>{error}</span>
                     </div>
                     {corruptedOutput && (
                       <div style={{
-                        marginTop: '6px',
-                        padding: '6px 10px',
-                        background: 'rgba(255, 51, 102, 0.08)',
-                        border: '1px solid rgba(255, 51, 102, 0.2)',
+                        marginTop: '4px',
+                        padding: '6px 8px',
+                        background: 'var(--accent-coral-muted)',
+                        border: '1px solid var(--accent-coral-border)',
                         borderRadius: '6px',
-                        fontSize: '0.73rem',
+                        fontSize: '0.7rem',
                         color: 'var(--text-muted)'
                       }}>
-                        <div style={{ color: 'var(--accent-amber)', fontWeight: 600, marginBottom: '2px' }}>
-                          Resultado obtido com chave incorreta (ruído matemático):
+                        <div style={{ color: '#ff5c7a', fontWeight: 500, marginBottom: '2px' }}>
+                          Saída com chave incorreta:
                         </div>
-                        <div style={{ fontFamily: 'var(--font-mono)', color: '#ff6688', wordBreak: 'break-all' }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-main)', wordBreak: 'break-all' }}>
                           {corruptedOutput.length > 70 ? corruptedOutput.slice(0, 70) + '...' : corruptedOutput}
                         </div>
                       </div>
@@ -292,3 +300,4 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ packet, isSelf }) 
     </div>
   );
 };
+

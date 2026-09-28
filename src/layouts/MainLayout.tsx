@@ -16,7 +16,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const { lanInfo, wsStatus, reconnect } = useCrypto();
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100vh', maxHeight: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -25,27 +25,46 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         onReconnect={reconnect}
       />
 
-      <main style={{ flex: 1, maxWidth: '1400px', width: '100%', margin: '0 auto', padding: '24px' }}>
+      <main style={{
+        flex: 1,
+        minHeight: 0,
+        maxWidth: '1440px',
+        width: '100%',
+        margin: '0 auto',
+        padding: '16px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden'
+      }}>
         {children}
       </main>
 
       <footer style={{
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        background: 'rgba(10, 15, 24, 0.6)',
-        padding: '16px 24px',
-        textAlign: 'center',
-        fontSize: '0.8rem',
-        color: 'var(--text-muted)'
+        height: '28px',
+        borderTop: '1px solid var(--border-color)',
+        background: 'var(--bg-secondary)',
+        padding: '0 20px',
+        fontSize: '0.72rem',
+        color: 'var(--text-muted)',
+        display: 'flex',
+        alignItems: 'center',
+        flexShrink: 0
       }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <strong>CriptoLab</strong> — Implementação Pura em TypeScript (Zero Bibliotecas Externas)
+        <div style={{ maxWidth: '1440px', width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontWeight: 600, color: 'var(--text-warm)' }}>CriptoLab</span>
+            <span style={{ color: 'var(--text-dim)' }}>•</span>
+            <span>TypeScript puro</span>
+            <span style={{ color: 'var(--text-dim)' }}>•</span>
+            <span>Sem bibliotecas externas</span>
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)' }}>
-            LAN IP: {lanInfo.localIp}:{lanInfo.port} | WebSockets: {wsStatus}
+          <div style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-dim)', fontSize: '0.7rem' }}>
+            LAN: {lanInfo.localIp}:{lanInfo.port}
           </div>
         </div>
       </footer>
     </div>
   );
 };
+
+

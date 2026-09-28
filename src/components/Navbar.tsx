@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, FlaskConical, MessageSquare, Radio, BookOpen, Wifi, WifiOff, Users, RefreshCw } from 'lucide-react';
+import { FlaskConical, MessageSquare, Radio, BookOpen, Users, RefreshCw, RadioTower } from 'lucide-react';
 import { LanInfo } from '../types/crypto';
 
 export type ActiveTab = 'LAB' | 'CHAT' | 'SNIFFER' | 'DOCS';
@@ -21,129 +21,143 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   return (
     <header style={{
-      background: 'rgba(10, 15, 24, 0.85)',
-      backdropFilter: 'blur(12px)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+      background: 'rgba(10, 11, 13, 0.92)',
+      backdropFilter: 'blur(10px)',
+      borderBottom: '1px solid var(--border-color)',
       position: 'sticky',
       top: 0,
       zIndex: 50,
       padding: '0 24px'
     }}>
       <div style={{
-        maxWidth: '1400px',
+        maxWidth: '1360px',
         margin: '0 auto',
-        height: '68px',
+        height: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '20px'
+        gap: '16px'
       }}>
-        {/* Brand / Logo */}
+        {/* Supercut-Style Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #00ffaa, #00b4d8)',
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            background: '#16171d',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#050b14',
-            boxShadow: '0 0 16px rgba(0, 255, 170, 0.35)'
+            position: 'relative'
           }}>
-            <Shield size={22} strokeWidth={2.5} />
+            <RadioTower size={17} color="#fdfff1" strokeWidth={2} />
+            <div style={{
+              position: 'absolute',
+              top: '4px',
+              right: '4px',
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: 'var(--accent-coral)'
+            }} />
           </div>
+
           <div>
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              fontWeight: 700,
+              fontSize: '0.96rem',
+              letterSpacing: '-0.02em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: 'var(--text-warm)'
+            }}>
               <span>CriptoLab</span>
-              <span style={{ color: '#00ffaa' }}>&</span>
-              <span>CriptoChat LAN</span>
-            </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              Aritmética Modular & Criptoanálise Pura
+              <span style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>/</span>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.86rem' }}>LAN</span>
             </div>
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        {/* Supercut-Style Segmented Navigation */}
+        <nav className="segmented-control">
           <button
+            type="button"
             onClick={() => setActiveTab('LAB')}
-            className={activeTab === 'LAB' ? 'btn-primary' : 'btn-secondary'}
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            className={`segmented-btn ${activeTab === 'LAB' ? 'active' : ''}`}
           >
-            <FlaskConical size={16} />
-            Laboratório Formal
+            <FlaskConical size={14} />
+            <span>Laboratório</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('CHAT')}
-            className={activeTab === 'CHAT' ? 'btn-primary' : 'btn-secondary'}
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            className={`segmented-btn ${activeTab === 'CHAT' ? 'active' : ''}`}
           >
-            <MessageSquare size={16} />
-            CriptoChat LAN
+            <MessageSquare size={14} />
+            <span>Chat em Rede</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('SNIFFER')}
-            className={activeTab === 'SNIFFER' ? 'btn-danger' : 'btn-secondary'}
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            className={`segmented-btn ${activeTab === 'SNIFFER' ? 'active' : ''}`}
           >
-            <Radio size={16} />
-            Sniffer & Two-Time Pad
+            <Radio size={14} />
+            <span>Interceptação</span>
           </button>
 
           <button
+            type="button"
             onClick={() => setActiveTab('DOCS')}
-            className={activeTab === 'DOCS' ? 'btn-primary' : 'btn-secondary'}
-            style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            className={`segmented-btn ${activeTab === 'DOCS' ? 'active' : ''}`}
           >
-            <BookOpen size={16} />
-            React & Data Flow
+            <BookOpen size={14} />
+            <span>Arquitetura</span>
           </button>
         </nav>
 
-        {/* LAN Status & Peers Indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Peer count */}
-          <div className="badge badge-cyan" title="Dispositivos conectados">
-            <Users size={13} />
+        {/* LAN Status & Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="badge badge-neutral" title="Clientes ativos na rede">
+            <Users size={12} />
             <span>{lanInfo.clientCount} online</span>
           </div>
 
-          {/* Connection Status Badge */}
-          <div
+          <button
+            type="button"
+            onClick={onReconnect}
             className={`badge ${
               wsStatus === 'connected'
                 ? 'badge-emerald'
                 : wsStatus === 'connecting'
                 ? 'badge-amber'
-                : 'badge-crimson'
+                : 'badge-coral'
             }`}
-            style={{ cursor: 'pointer' }}
-            onClick={onReconnect}
-            title="Clique para reconectar WebSocket"
+            style={{ cursor: 'pointer', background: 'transparent' }}
+            title="Clique para reconectar ao WebSocket"
           >
-            {wsStatus === 'connected' ? (
-              <>
-                <Wifi size={13} />
-                <span>LAN: {lanInfo.localIp}:{lanInfo.port}</span>
-              </>
-            ) : wsStatus === 'connecting' ? (
-              <>
-                <RefreshCw size={13} className="spin" />
-                <span>Conectando...</span>
-              </>
-            ) : (
-              <>
-                <WifiOff size={13} />
-                <span>Desconectado</span>
-              </>
-            )}
-          </div>
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: wsStatus === 'connected' ? '#10b981' : wsStatus === 'connecting' ? '#f59e0b' : '#ff3157',
+              display: 'inline-block'
+            }} />
+            <span style={{ fontFamily: 'var(--font-mono)' }}>
+              {wsStatus === 'connected'
+                ? `${lanInfo.localIp}:${lanInfo.port}`
+                : wsStatus === 'connecting'
+                ? 'Conectando...'
+                : 'Offline (reconectar)'}
+            </span>
+            {wsStatus === 'connecting' && <RefreshCw size={11} className="spin" />}
+          </button>
         </div>
       </div>
     </header>
   );
 };
+

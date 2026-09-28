@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Skull, AlertTriangle, Radio, Terminal, Zap, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Radio, Terminal, CheckCircle2, ShieldAlert, Sparkles } from 'lucide-react';
 import { ChatPacket, TwoTimePadResult } from '../../types/crypto';
 import { analyzeTwoTimePad } from '../../utils/cryptoEngine';
 
@@ -32,92 +32,195 @@ export const EveSniffer: React.FC<EveSnifferProps> = ({ packets }) => {
       const res = analyzeTwoTimePad(c1, c2);
       setAnalysisResult(res);
     } catch (err: any) {
-      alert('Erro ao processar ataque: ' + err.message);
+      alert('Erro ao processar análise: ' + err.message);
     }
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '24px' }}>
-      {/* Red Hacker Banner */}
+    <div style={{
+      flex: 1,
+      minHeight: 0,
+      display: 'grid',
+      gridTemplateColumns: 'minmax(320px, 420px) minmax(0, 1fr)',
+      gap: '14px',
+      overflow: 'hidden'
+    }}>
+      {/* Left Column: Intercepted Traffic & Reused Key Alerts */}
       <div className="glass-panel" style={{
-        padding: '24px',
-        border: '1px solid rgba(255, 51, 102, 0.4)',
-        background: 'linear-gradient(135deg, rgba(255, 51, 102, 0.08) 0%, rgba(10, 15, 24, 0.95) 100%)'
+        padding: '18px',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        overflow: 'hidden',
+        gap: '14px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <span className="badge badge-crimson">
-                <Skull size={14} /> MODO INTERCEPTADOR / EVE
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+              <span className="badge badge-coral">
+                <Radio size={11} /> Monitoramento LAN
               </span>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ff3366' }}>
-                Sniffer de Rede e Quebra de Two-Time Pad ao Vivo
+              <h2 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-warm)' }}>
+                Tráfego Interceptado
               </h2>
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', maxWidth: '780px' }}>
-              Este painel simula a escuta passiva de tráfego de rede (Eve/Sniffer). Quando dois dispositivos na sala de aula transmitem mensagens cifradas por OTP reutilizando a mesma chave decimal, a chave se anula matematicamente ($K \oplus K = 0$), permitindo a revelação das mensagens claras.
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.74rem' }}>
+              Inspeção de pacotes transitando pelo canal de rede local.
             </p>
           </div>
 
-          <div className="badge badge-crimson" style={{ padding: '6px 14px', fontSize: '0.82rem' }}>
-            <Radio size={14} className="pulse-glow" />
-            <span>{packets.length} Pacotes Capturados na LAN</span>
+          <span className="badge badge-neutral" style={{ fontSize: '0.7rem' }}>
+            {packets.length} {packets.length === 1 ? 'pacote' : 'pacotes'}
+          </span>
+        </div>
+
+        {/* Key Reuse Alert */}
+        {keyReusedPairs.length > 0 && (
+          <div style={{
+            background: 'var(--accent-coral-muted)',
+            border: '1px solid var(--accent-coral-border)',
+            borderRadius: '8px',
+            padding: '12px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff5c7a', fontWeight: 600, fontSize: '0.8rem' }}>
+              <AlertTriangle size={15} />
+              <span>Chave Reutilizada Detectada em Trânsito</span>
+            </div>
+            <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
+              Dois nós utilizaram o mesmo segredo OTP. A chave pode ser anulada algebricamente:
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {keyReusedPairs.map(([p1, p2], idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setSelectedPkt1(p1.ciphertext);
+                    setSelectedPkt2(p2.ciphertext);
+                    handleLaunchAttack(p1.ciphertext, p2.ciphertext);
+                  }}
+                  className="btn-danger"
+                  style={{ fontSize: '0.74rem', padding: '5px 10px' }}
+                >
+                  <ShieldAlert size={12} /> Analisar Par: {p1.senderName} e {p2.senderName}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Captured Packets Feed */}
+        <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          <div className="form-label" style={{ marginBottom: '6px' }}>Fluxo de Pacotes na Rede</div>
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            background: 'var(--bg-inset)',
+            borderRadius: '8px',
+            border: '1px solid var(--border-color)',
+            padding: '8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px'
+          }}>
+            {packets.length === 0 ? (
+              <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '30px 10px', fontSize: '0.78rem' }}>
+                Nenhum tráfego detectado na LAN até o momento.
+              </div>
+            ) : (
+              packets.map((pkt) => (
+                <div
+                  key={pkt.id}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="badge badge-neutral" style={{ fontSize: '0.65rem' }}>{pkt.cipherType}</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-warm)' }}>{pkt.senderName}</span>
+                    </div>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-dim)' }}>
+                      {new Date(pkt.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+
+                  <div style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.74rem',
+                    color: 'var(--text-muted)',
+                    wordBreak: 'break-all',
+                    background: 'var(--bg-inset)',
+                    padding: '4px 6px',
+                    borderRadius: '4px'
+                  }}>
+                    {pkt.ciphertext}
+                  </div>
+
+                  {pkt.cipherType === 'OTP' && (
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPkt1(pkt.ciphertext)}
+                        className={`badge ${selectedPkt1 === pkt.ciphertext ? 'badge-coral' : 'badge-neutral'}`}
+                        style={{ cursor: 'pointer', fontSize: '0.68rem' }}
+                      >
+                        Definir C₁
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPkt2(pkt.ciphertext)}
+                        className={`badge ${selectedPkt2 === pkt.ciphertext ? 'badge-coral' : 'badge-neutral'}`}
+                        style={{ cursor: 'pointer', fontSize: '0.68rem' }}
+                      >
+                        Definir C₂
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
 
-      {/* Real-Time Key Reuse Alert if detected */}
-      {keyReusedPairs.length > 0 && (
-        <div style={{
-          background: 'rgba(255, 51, 102, 0.15)',
-          border: '2px solid #ff3366',
-          borderRadius: '12px',
-          padding: '20px',
-          boxShadow: '0 0 25px rgba(255, 51, 102, 0.25)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#ff3366', fontWeight: 800, fontSize: '1.05rem', marginBottom: '8px' }}>
-            <AlertTriangle size={24} />
-            <span>ALERTA VERMELHO: Reutilização de Chave OTP Detectada em Trânsito!</span>
-          </div>
-          <p style={{ fontSize: '0.88rem', color: 'var(--text-main)', marginBottom: '14px' }}>
-            Dois pacotes na rede foram gerados com a mesma chave secreta decimal. Clique abaixo para executar o ataque Two-Time Pad imediatamente:
-          </p>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            {keyReusedPairs.map(([p1, p2], idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setSelectedPkt1(p1.ciphertext);
-                  setSelectedPkt2(p2.ciphertext);
-                  handleLaunchAttack(p1.ciphertext, p2.ciphertext);
-                }}
-                className="btn-danger"
-                style={{ fontWeight: 700 }}
-              >
-                <Zap size={15} /> Atacar Par: [{p1.senderName}] e [{p2.senderName}]
-              </button>
-            ))}
-          </div>
+      {/* Right Column: Two-Time Pad Cryptanalysis Workbench */}
+      <div className="glass-panel" style={{
+        padding: '18px',
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        gap: '14px'
+      }}>
+        {/* Title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-color)', paddingBottom: '12px' }}>
+          <Terminal size={15} color="var(--text-muted)" />
+          <h3 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-warm)' }}>
+            Estação de Criptoanálise C₁ ⊕ C₂
+          </h3>
         </div>
-      )}
 
-      {/* Manual Attack Trigger */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Terminal size={18} color="#00ffaa" />
-          <span>Executar Criptoanálise C₁ ⊕ C₂ sobre Pacotes do Chat</span>
-        </h3>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+        {/* Selected Packets Input */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
           <div>
             <label className="form-label">Pacote 1 (C₁ Decimal)</label>
             <input
               type="text"
               className="input-field input-field-mono"
-              placeholder="Cole ou selecione o pacote C1..."
+              placeholder="Cole ou selecione C1..."
               value={selectedPkt1}
               onChange={(e) => setSelectedPkt1(e.target.value)}
+              style={{ fontSize: '0.78rem' }}
             />
           </div>
 
@@ -126,115 +229,95 @@ export const EveSniffer: React.FC<EveSnifferProps> = ({ packets }) => {
             <input
               type="text"
               className="input-field input-field-mono"
-              placeholder="Cole ou selecione o pacote C2..."
+              placeholder="Cole ou selecione C2..."
               value={selectedPkt2}
               onChange={(e) => setSelectedPkt2(e.target.value)}
+              style={{ fontSize: '0.78rem' }}
             />
           </div>
         </div>
 
         <button
+          type="button"
           onClick={() => handleLaunchAttack(selectedPkt1, selectedPkt2)}
-          className="btn-danger"
+          className="btn-primary"
           disabled={!selectedPkt1 || !selectedPkt2}
-          style={{ opacity: selectedPkt1 && selectedPkt2 ? 1 : 0.5 }}
+          style={{
+            opacity: selectedPkt1 && selectedPkt2 ? 1 : 0.5,
+            cursor: selectedPkt1 && selectedPkt2 ? 'pointer' : 'not-allowed',
+            fontSize: '0.8rem',
+            justifyContent: 'center'
+          }}
         >
-          <Skull size={16} /> Calcular C₁ ⊕ C₂ e Quebrar Mensagens
+          <ShieldAlert size={14} />
+          <span>Executar Ataque Two-Time Pad (C₁ ⊕ C₂)</span>
         </button>
-      </div>
 
-      {/* Attack Results */}
-      {analysisResult && (
-        <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(0, 255, 170, 0.3)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00ffaa', fontWeight: 700, marginBottom: '14px' }}>
-            <CheckCircle2 size={18} />
-            <span>Resultado da Interceptação: Cancelamento da Chave</span>
-          </div>
-
-          <div className="code-box" style={{ lineHeight: '1.8', marginBottom: '20px' }}>
-            {analysisResult.explanation.map((line, idx) => (
-              <div key={idx} style={{ color: idx === 4 ? '#ff3366' : idx >= 5 ? '#00ffaa' : undefined, fontWeight: idx === 4 ? 700 : 400 }}>
-                {line}
-              </div>
-            ))}
-          </div>
-
-          <div>
-            <div className="form-label">Cribs / Palavras Candidatas Reveladas</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '12px' }}>
-              {analysisResult.cribCandidates.map((cand, idx) => (
-                <div key={idx} className="code-box">
-                  <div style={{ color: 'var(--accent-amber)', fontWeight: 700 }}>
-                    Palpite: "{cand.crib}"
-                  </div>
-                  <div style={{ color: '#00ffaa', marginTop: '4px' }}>
-                    Texto Revelado: "{cand.revealed}"
-                  </div>
-                </div>
-              ))}
+        {/* Analysis Result */}
+        {analysisResult ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '6px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#10b981',
+              fontWeight: 600,
+              fontSize: '0.82rem',
+              background: 'rgba(16, 185, 129, 0.08)',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              border: '1px solid rgba(16, 185, 129, 0.25)'
+            }}>
+              <CheckCircle2 size={15} />
+              <span>Chave Secreta K Cancelada por Idempotência (K ⊕ K = 0)</span>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* Raw Network Traffic Inspector */}
-      <div className="glass-panel" style={{ padding: '24px' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Radio size={18} color="var(--accent-cyan)" />
-          <span>Inspetor de Pacotes Brutos (Captura Promíscua na LAN)</span>
-        </h3>
-
-        <div style={{
-          maxHeight: '320px',
-          overflowY: 'auto',
-          background: '#05080e',
-          borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.06)',
-          padding: '12px'
-        }}>
-          {packets.length === 0 ? (
-            <div style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '20px' }}>
-              Nenhum pacote detectado na rede ainda.
-            </div>
-          ) : (
-            packets.map((pkt) => (
-              <div
-                key={pkt.id}
-                style={{
-                  padding: '10px',
-                  borderBottom: '1px solid rgba(255,255,255,0.05)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.8rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}
-              >
-                <div>
-                  <span style={{ color: 'var(--accent-emerald)', fontWeight: 700 }}>[{pkt.cipherType}]</span>{' '}
-                  <span style={{ color: 'var(--text-muted)' }}>De: {pkt.senderName} ({pkt.senderId})</span>
-                  <div style={{ color: '#a8d5e5', marginTop: '4px', wordBreak: 'break-all' }}>
-                    Cifrado: {pkt.ciphertext}
+            <div>
+              <div className="form-label">Trilha Algébrica Passo a Passo</div>
+              <div className="code-box" style={{ lineHeight: '1.8', fontSize: '0.78rem' }}>
+                {analysisResult.explanation.map((line, idx) => (
+                  <div key={idx} style={{
+                    color: idx === 4 ? '#ff5c7a' : idx >= 5 ? '#34d399' : undefined,
+                    fontWeight: idx === 4 ? 600 : 400
+                  }}>
+                    {line}
                   </div>
-                </div>
-
-                {pkt.cipherType === 'OTP' && (
-                  <button
-                    onClick={() => {
-                      if (!selectedPkt1) setSelectedPkt1(pkt.ciphertext);
-                      else setSelectedPkt2(pkt.ciphertext);
-                    }}
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
-                  >
-                    Selecionar p/ Ataque
-                  </button>
-                )}
+                ))}
               </div>
-            ))
-          )}
-        </div>
+            </div>
+
+            {analysisResult.cribCandidates.length > 0 && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                  <Sparkles size={13} color="#fbbf24" />
+                  <span className="form-label" style={{ marginBottom: 0 }}>Crib-Dragging: Varredura de Hipóteses Conhecidas</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
+                  {analysisResult.cribCandidates.map((cand, idx) => (
+                    <div key={idx} className="code-box" style={{ padding: '10px 12px', borderRadius: '8px' }}>
+                      <div style={{ color: '#fbbf24', fontWeight: 600, fontSize: '0.78rem' }}>
+                        Palpite (Crib): "{cand.crib}"
+                      </div>
+                      <div style={{ color: '#34d399', marginTop: '4px', fontSize: '0.78rem' }}>
+                        Texto Revelado: "{cand.revealed}"
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{
+            margin: 'auto',
+            textAlign: 'center',
+            color: 'var(--text-dim)',
+            padding: '30px',
+            fontSize: '0.82rem'
+          }}>
+            Selecione dois pacotes OTP na coluna esquerda ou cole seus valores decimais para calcular o cancelamento da chave.
+          </div>
+        )}
       </div>
     </div>
   );
