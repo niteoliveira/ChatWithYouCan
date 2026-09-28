@@ -1,8 +1,8 @@
 import React from 'react';
-import { FlaskConical, MessageSquare, Radio, BookOpen, Users, RefreshCw, RadioTower } from 'lucide-react';
+import { FlaskConical, MessageSquare, BookOpen, Users, RefreshCw, RadioTower } from 'lucide-react';
 import { LanInfo } from '../types/crypto';
 
-export type ActiveTab = 'LAB' | 'CHAT' | 'SNIFFER' | 'DOCS';
+export type ActiveTab = 'LAB' | 'CHAT' | 'DOCS';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -100,14 +100,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Chat em Rede</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('SNIFFER')}
-            className={`segmented-btn ${activeTab === 'SNIFFER' ? 'active' : ''}`}
-          >
-            <Radio size={14} />
-            <span>Interceptação</span>
-          </button>
 
           <button
             type="button"
