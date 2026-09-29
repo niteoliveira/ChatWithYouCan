@@ -1,4 +1,4 @@
-import type { Matrix2x2, OtpResult, CaesarResult, VigenereResult, HillResult, TwoTimePadResult } from '../types/crypto.ts';
+import type { Matrix2x2, OtpResult, CaesarResult, VigenereResult, HillResult, TwoTimePadResult, TextOtpResult, TwoTimePadTextResult } from '../types/crypto.ts';
 
 // --- MATH UTILITIES (Pure TypeScript, Zero external libraries) ---
 
@@ -482,4 +482,106 @@ export function analyzeTwoTimePad(c1DecStr: string, c2DecStr: string): TwoTimePa
     explanation,
     cribCandidates: cribCandidates.slice(0, 5)
   };
+}
+
+// --- 6. TEXT-BASED OTP (BYTE-LEVEL XOR) – usado pelo TwoTimePadModule (Opção B) ---
+
+/**
+ * Encrypts plaintext using byte-level XOR with the key (UTF-8 bytes).
+ * Key is cycled to match the plaintext length, then each byte is XORed.
+ * Returns the ciphertext as a hex string.
+ */
+export function encryptTextOtp(plaintext: string, key: string): TextOtpResult {
+  if (!plaintext) throw new Error('A mensagem não pode ser vazia.');
+  if (!key) throw new Error('A chave não pode ser vazia.');
+
+  const enc = new TextEncoder();
+  const msgBytes = enc.encode(plaintext);
+  const keyBytes = enc.encode(key);
+
+  const steps: TextOtpResult['steps'] = [];
+  const cipherBytes: number[] = [];
+
+  for (let i = 0; i < msgBytes.length; i++) {
+    const charByte = msgBytes[i];
+    const keyByte = keyBytes[i % keyBytes.length];
+    const xorByte = charByte ^ keyByte;
+    const cipherHex = xorByte.toString(16).padStart(2, '0');
+
+    steps.push({
+      char: plaintext[i] ?? '?',
+      charByte,
+      keyByte,
+      xorByte,
+      cipherHex
+    });
+    cipherBytes.push(xorByte);
+  }
+
+  const paddedKey = Array.from({ length: msgBytes.length }, (_, i) =>
+    String.fromCharCode(keyBytes[i % keyBytes.length])
+  ).join('');
+
+  const ciphertextHex = cipherBytes.map(b => b.toString(16).padStart(2, '0')).join(' ');
+
+  return { plaintext, key, paddedKey, ciphertextHex, steps };
+}
+
+/**
+ * Demonstrates the Two-Time Pad attack:
+ * C1 = M1 ⊕ K,  C2 = M2 ⊕ K
+ * C1 ⊕ C2 = M1 ⊕ M2  (key cancels out by idempotência)
+ */
+export function analyzeTwoTimePadText(m1: string, m2: string, key: string): TwoTimePadTextResult {
+  if (!m1 || !m2) throw new Error('Informe as duas mensagens M₁ e M₂.');
+  if (!key) throw new Error('Informe a chave K usada em ambas as cifragens.');
+
+  const enc = new TextEncoder();
+  const m1Bytes = enc.encode(m1);
+  const m2Bytes = enc.encode(m2);
+  const keyBytes = enc.encode(key);
+
+  const maxLen = Math.max(m1Bytes.length, m2Bytes.length);
+
+  const c1Bytes: number[] = [];
+  const c2Bytes: number[] = [];
+
+  for (let i = 0; i < m1Bytes.length; i++) {
+    c1Bytes.push(m1Bytes[i] ^ keyBytes[i % keyBytes.length]);
+  }
+  for (let i = 0; i < m2Bytes.length; i++) {
+    c2Bytes.push(m2Bytes[i] ^ keyBytes[i % keyBytes.length]);
+  }
+
+  const minLen = Math.min(c1Bytes.length, c2Bytes.length);
+  const xorBytes: TwoTimePadTextResult['xorBytes'] = [];
+  const xorHexParts: string[] = [];
+
+  for (let i = 0; i < minLen; i++) {
+    const xorByte = c1Bytes[i] ^ c2Bytes[i];
+    xorBytes.push({ c1Byte: c1Bytes[i], c2Byte: c2Bytes[i], xorByte });
+    xorHexParts.push(xorByte.toString(16).padStart(2, '0'));
+  }
+
+  const c1Hex = c1Bytes.map(b => b.toString(16).padStart(2, '0')).join(' ');
+  const c2Hex = c2Bytes.map(b => b.toString(16).padStart(2, '0')).join(' ');
+  const xorHex = xorHexParts.join(' ');
+
+  const explanation = [
+    `Passo 1 — Cifragem de M₁ com a chave K:`,
+    `   C₁ = M₁ ⊕ K`,
+    `   C₁ (hex): ${c1Hex}`,
+    `Passo 2 — Cifragem de M₂ com a MESMA chave K:`,
+    `   C₂ = M₂ ⊕ K`,
+    `   C₂ (hex): ${c2Hex}`,
+    `Passo 3 — Ataque: atacante computa C₁ ⊕ C₂:`,
+    `   C₁ ⊕ C₂ = (M₁ ⊕ K) ⊕ (M₂ ⊕ K)`,
+    `           = M₁ ⊕ (K ⊕ K) ⊕ M₂     [associatividade]`,
+    `           = M₁ ⊕ 0 ⊕ M₂            [idempotência: K⊕K = 0]`,
+    `           = M₁ ⊕ M₂                [K desapareceu!]`,
+    `   C₁ ⊕ C₂ (hex): ${xorHex}`,
+    `Conclusão: o segredo perfeito do OTP é DESTRUÍDO pela reutilização de chave.`,
+  ];
+
+  return { m1, m2, key, c1Hex, c2Hex, xorHex, xorBytes, explanation };
 }

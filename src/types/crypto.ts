@@ -107,3 +107,27 @@ export interface TwoTimePadResult {
     score: number;
   }>;
 }
+
+/** Result of XORing two byte-level texts with a shared key (Two-Time Pad demo) */
+export interface TextOtpResult {
+  plaintext: string;
+  key: string;
+  /** key padded/cycled to match plaintext length */
+  paddedKey: string;
+  /** hex representation of ciphertext bytes */
+  ciphertextHex: string;
+  /** byte-level XOR steps: [charByte, keyByte, xorByte] */
+  steps: Array<{ char: string; charByte: number; keyByte: number; xorByte: number; cipherHex: string }>;
+}
+
+export interface TwoTimePadTextResult {
+  m1: string;
+  m2: string;
+  key: string;
+  c1Hex: string;
+  c2Hex: string;
+  xorHex: string;
+  /** byte-level breakdown */
+  xorBytes: Array<{ c1Byte: number; c2Byte: number; xorByte: number }>;
+  explanation: string[];
+}
